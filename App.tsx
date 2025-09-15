@@ -143,7 +143,7 @@ function App() {
                 <img 
                   src={iconsHero} 
                   alt="Architect AI Hero" 
-                  className="w-62 h-62 mx-auto mb-6 opacity-90"
+                  className="w-72 h-72 mx-auto mb-[-2.5rem] opacity-90"
                 />
               </div>
               <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'Funnel Display, serif' }}>
