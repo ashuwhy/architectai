@@ -247,7 +247,7 @@ The system generates multiple specialized files:
 
 #### Layout Structure
 ```
-Header (Navigation + Auth)
+Header (Navigation + Firebase Auth)
 ├── Main Content Area
 │   ├── Input Section (Left Sidebar)
 │   └── Output Section (Right Panel)

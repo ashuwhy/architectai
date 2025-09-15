@@ -1,8 +1,9 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { PlanItem, PlanStatus } from './types';
 import { generatePlan, generateSectionContent } from './services/geminiService';
+import { useAuth } from './components/auth/AuthProvider';
+import AuthButton from './components/auth/AuthButton';
 import PromptInput from './components/PromptInput';
 import PlanViewer from './components/PlanViewer';
 import DocumentViewer from './components/DocumentViewer';
@@ -12,6 +13,8 @@ import { Button } from './components/ui/button';
 import iconsHero from './assets/icons/icons_hero.png';
 
 function App() {
+  const { user, loading } = useAuth();
+  console.log('App component - User:', user, 'Loading:', loading);
   const [prompt, setPrompt] = useState<string>('');
   const [plan, setPlan] = useState<PlanItem[]>([]);
   const [documentContent, setDocumentContent] = useState<string>('');
@@ -95,6 +98,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan, prompt, apiKey]); // Depends on plan to trigger execution. prompt and apiKey are included for context.
 
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
@@ -113,22 +117,9 @@ function App() {
               </Alert>
             )}
             <div className="flex items-center gap-4">
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <Button className="text-sm font-medium">
-                    Sign In
-                  </Button>
-                </SignInButton>
-              </SignedOut>
-              <SignedIn>
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-10 h-10 border-2 border-primary/50 rounded-full"
-                    }
-                  }}
-                />
-              </SignedIn>
+              <AuthButton 
+                user={user}
+              />
             </div>
           </div>
         </div>
@@ -136,7 +127,14 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl px-6 py-6">
-        <SignedOut>
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        ) : !user ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
             <div className="max-w-md mx-auto">
               <div className="">
@@ -153,16 +151,12 @@ function App() {
                 Sign in to start creating AI-powered system design documentation.<br />
                 Generate comprehensive plans and detailed documentation for your applications.
               </p>
-              <SignInButton mode="modal">
-                <Button className="font-medium">
-                  Get Started
-                </Button>
-              </SignInButton>
+              <AuthButton 
+                user={user}
+              />
             </div>
           </div>
-        </SignedOut>
-        
-        <SignedIn>
+        ) : (
           <div 
             className="grid gap-6" 
             style={{ 
@@ -194,7 +188,7 @@ function App() {
               />
             </main>
           </div>
-        </SignedIn>
+        )}
       </main>
       
       <Footer />

@@ -82,7 +82,7 @@ Despite these time constraints, the project successfully delivers all mandatory 
 - **Custom Prompt Engineering**: Optimized prompts for system design documentation
 
 ### Authentication & UI
-- **Clerk (5.47.0)**: User authentication and management
+- **Firebase Auth**: User authentication with Google Sign-In
 - **Lucide React (0.544.0)**: Beautiful icon library
 - **React Markdown (10.1.0)**: Markdown rendering with GitHub Flavored Markdown
 
