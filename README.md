@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="assets/card/card.png" alt="Architect AI Logo" width="200" />
-  <h1>Architect AI</h1>
+  <img src="assets/card/card.png" alt="Architect AI Logo" width="800" />
   <p><em>Intelligent System Design Documentation</em></p>
 </div>
 
