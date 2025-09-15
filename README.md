@@ -256,8 +256,9 @@ This project is developed for educational purposes as part of an academic assign
 
 ## Contact
 
-**Developer**: Ashutosh Sharma 
-**Institution**: IIT Kharagpur    
+**Developer**: Ashutosh Sharma  
+**Institution**: IIT Kharagpur
+
 <!-- **Submission Date**: [Current Date] -->
 
 ---
