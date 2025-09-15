@@ -30,14 +30,23 @@ The AI System Design Architect is a web-based application that automates the cre
 │  State Management│    │  Prompt Engine  │    │  Export System  │
 │   (React Hooks) │    │   (Custom)      │    │   (JSZip)       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐
+│  Redis Cache    │    │  Rate Limiting  │
+│  (AI Responses) │    │  (User Limits)  │
+└─────────────────┘    └─────────────────┘
 ```
 
 ### Core Workflow
 1. **Input Processing**: User enters system requirements via text input
-2. **AI Reasoning**: System analyzes requirements and creates structured plan
-3. **Content Generation**: AI generates detailed content for each plan section
-4. **Document Assembly**: Content is organized and formatted for export
-5. **File Export**: Users can download individual files or complete ZIP package
+2. **Rate Limiting**: System checks user request limits via Redis
+3. **Cache Check**: System checks for cached AI responses to improve performance
+4. **AI Reasoning**: System analyzes requirements and creates structured plan
+5. **Content Generation**: AI generates detailed content for each plan section
+6. **Response Caching**: Generated content is cached in Redis for future use
+7. **Document Assembly**: Content is organized and formatted for export
+8. **File Export**: Users can download individual files or complete ZIP package
 
 ## System Components
 
@@ -56,6 +65,8 @@ The AI System Design Architect is a web-based application that automates the cre
 - `PlanViewer.tsx`: Plan visualization and progress tracking
 - `DocumentViewer.tsx`: Document display and export functionality
 - `ApiKeyDialog.tsx`: API key management
+- `RedisStatus.tsx`: Redis connection and cache status monitoring
+- `HistoryViewer.tsx`: User activity and generation history
 
 ### 2. AI Service Layer
 **Purpose**: Integration with Google Gemini API
@@ -64,13 +75,30 @@ The AI System Design Architect is a web-based application that automates the cre
 - API communication and error handling
 - Content generation and validation
 - Response parsing and formatting
+- API key management and caching
 
 **Key Services**:
-- `geminiService.ts`: Core AI integration service
+- `geminiService.ts`: Core AI integration service with caching support
 - Custom prompt templates for different document sections
 - Error handling and retry logic
+- User-specific API key caching
 
-### 3. State Management
+### 3. Redis Caching Layer
+**Purpose**: Performance optimization and rate limiting
+**Responsibilities**:
+- AI response caching for improved performance
+- User API key caching with security obfuscation
+- Rate limiting and user request tracking
+- User activity analytics and statistics
+- Real-time generation status tracking
+
+**Key Services**:
+- `redis.ts`: Redis client and caching operations
+- Configurable TTL for different cache types
+- Fail-open strategy for high availability
+- User activity tracking and analytics
+
+### 4. State Management
 **Purpose**: Application state coordination
 **Responsibilities**:
 - User input state
@@ -83,7 +111,7 @@ The AI System Design Architect is a web-based application that automates the cre
 - Context-based state management
 - Optimistic updates for better UX
 
-### 4. Export System
+### 5. Export System
 **Purpose**: Document generation and download
 **Responsibilities**:
 - File format conversion
@@ -101,7 +129,7 @@ The AI System Design Architect is a web-based application that automates the cre
 ### Data Flow Architecture
 
 ```
-User Input → AI Processing → Plan Generation → Content Creation → Document Assembly → Export
+User Input → Rate Limit Check → Cache Check → AI Processing → Plan Generation → Content Creation → Response Caching → Document Assembly → Export
 ```
 
 ### Data Structures
@@ -135,6 +163,30 @@ interface DocumentSection {
     aiOptimized: boolean;
     sectionType: string;
   };
+}
+```
+
+#### 4. Rate Limit Response
+```typescript
+interface RateLimitResponse {
+  allowed: boolean;
+  used: number;
+  remaining: number;
+  limit: number;
+  window: number;
+  resetTime: number;
+  ttl: number;
+  error?: string;
+}
+```
+
+#### 5. Cache Configuration
+```typescript
+interface CacheConfig {
+  aiResponseTtl: number;      // Default: 3600 seconds (1 hour)
+  apiKeyTtl: number;          // Default: 300 seconds (5 minutes)
+  rateLimitWindow: number;    // Default: 3600 seconds (1 hour)
+  rateLimitRequests: number;  // Default: 10 requests per window
 }
 ```
 
@@ -196,6 +248,14 @@ The system generates multiple specialized files:
 - **Cost-effective**: Competitive pricing for development
 - **Reliability**: Stable API with good uptime
 - **Flexibility**: Supports various prompt engineering techniques
+
+#### Redis
+**Choice Rationale**:
+- **High performance**: In-memory data store for fast access
+- **Caching capabilities**: Efficient caching of AI responses and API keys
+- **Rate limiting**: Built-in support for request rate limiting
+- **Scalability**: Horizontal scaling capabilities
+- **Persistence**: Optional data persistence for analytics
 
 ### Development Tools
 
@@ -273,15 +333,18 @@ Header (Navigation + Firebase Auth)
 
 ### API Key Management
 - **Client-side storage**: API keys stored in component state
-- **No persistence**: Keys not saved to localStorage
+- **Redis caching**: Secure caching of user-provided API keys with obfuscation
+- **Configurable TTL**: API keys cached for 5 minutes by default
 - **User control**: Users manage their own API keys
 - **Validation**: Basic key format validation
+- **Automatic fallback**: Falls back to environment variables if no cached key
 
 ### Data Privacy
-- **No data storage**: No user data persisted on server
+- **Minimal data storage**: Only cached responses and API keys in Redis
 - **Local processing**: All processing happens client-side
 - **API communication**: Direct communication with Gemini API
-- **Temporary data**: Generated content only exists in browser session
+- **Temporary data**: Generated content cached temporarily in Redis
+- **User analytics**: Optional activity tracking with configurable retention
 
 ### Input Validation
 - **Sanitization**: User input sanitized before API calls
@@ -298,9 +361,11 @@ Header (Navigation + Firebase Auth)
 
 ### AI Service Optimizations
 - **Prompt optimization**: Efficient, focused prompts
-- **Caching**: Client-side caching of generated content
+- **Redis caching**: Server-side caching of AI responses for improved performance
+- **API key caching**: Cached user API keys to reduce authentication overhead
 - **Error recovery**: Graceful handling of API failures
-- **Rate limiting**: Respectful API usage
+- **Rate limiting**: Configurable user request limits with Redis backend
+- **Fail-open strategy**: System continues to work even if Redis is unavailable
 
 ### User Experience Optimizations
 - **Loading states**: Clear progress indicators
@@ -333,14 +398,17 @@ Header (Navigation + Firebase Auth)
 ### Horizontal Scaling
 - **Stateless architecture**: No server-side state
 - **CDN distribution**: Global content delivery
+- **Redis clustering**: Distributed caching and rate limiting
 - **API rate limits**: Respectful third-party API usage
-- **Caching strategies**: Client-side and CDN caching
+- **Caching strategies**: Redis, client-side, and CDN caching
 
 ### Feature Extensions
 - **Template system**: Pre-built document templates
 - **Collaboration**: Multi-user editing capabilities
 - **Version control**: Document versioning
 - **Integration**: Third-party tool integrations
+- **Advanced analytics**: User behavior tracking and insights
+- **Custom rate limits**: Per-user or per-organization rate limiting
 
 ### Performance Scaling
 - **Progressive loading**: Lazy loading of heavy components

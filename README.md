@@ -80,11 +80,18 @@ Despite these time constraints, the project successfully delivers all mandatory 
 ### AI Integration
 - **Google Gemini API (@google/genai 1.19.0)**: Advanced AI model for content generation
 - **Custom Prompt Engineering**: Optimized prompts for system design documentation
+- **AI Response Caching**: Redis-based caching for improved performance and cost reduction
+- **API Key Caching**: Secure caching of user-provided Gemini API keys
 
 ### Authentication & UI
 - **Firebase Auth**: User authentication with Google Sign-In
 - **Lucide React (0.544.0)**: Beautiful icon library
 - **React Markdown (10.1.0)**: Markdown rendering with GitHub Flavored Markdown
+
+### Backend & Caching
+- **Redis 5.8.2**: In-memory data store for caching and rate limiting
+- **Rate Limiting**: Configurable user request limits with Redis backend
+- **Session Management**: User activity tracking and analytics
 
 ### Development Tools
 - **pnpm**: Fast, efficient package manager
@@ -109,7 +116,9 @@ Despite these time constraints, the project successfully delivers all mandatory 
 │   ├── PlanViewer.tsx    # Plan visualization
 │   └── PromptInput.tsx   # User input interface
 ├── services/             # API services
-│   └── geminiService.ts  # Google Gemini API integration
+│   ├── geminiService.ts  # Google Gemini API integration
+│   ├── redis.ts          # Redis caching and rate limiting
+│   └── firebase.ts       # Firebase authentication
 ├── assets/               # Static assets
 │   ├── card/            # Logo and branding
 │   ├── fonts/           # Custom fonts (Fira Code, Lineal, Inter, Playfair)
@@ -134,6 +143,7 @@ Despite these time constraints, the project successfully delivers all mandatory 
 - Node.js 18+ 
 - pnpm (recommended) or npm
 - Google Gemini API key
+- Redis instance (optional, for caching and rate limiting)
 
 ### Installation
 
@@ -148,13 +158,31 @@ Despite these time constraints, the project successfully delivers all mandatory 
    pnpm install
    ```
 
-3. **Set up environment variables**
+3. **Configure environment variables**
+   
+   Create a `.env` file in the root directory:
    ```bash
-   cp .env.example .env
-   # Add your Google Gemini API key to .env
+   # Redis Configuration (optional - for caching and rate limiting)
+   REDIS_HOST=your_redis_host
+   REDIS_PORT=6379
+   REDIS_USERNAME=default
+   REDIS_PASSWORD=your_redis_password
+
+   # Gemini API Configuration
+   GEMINI_API_KEY=your_gemini_api_key_here
+
+   # Rate Limiting Configuration
+   RATE_LIMIT_REQUESTS_PER_HOUR=10
+   RATE_LIMIT_WINDOW_SECONDS=3600
+
+   # Cache Configuration
+   AI_RESPONSE_CACHE_TTL=3600
+   GEMINI_API_KEY_CACHE_TTL=300
    ```
 
-4. **Start development server**
+   **Note**: If Redis is not configured, the application will work without caching and rate limiting features. The Gemini API key can also be provided directly in the UI.
+
+4. **Start the development server**
    ```bash
    pnpm dev
    ```
@@ -182,6 +210,14 @@ Despite these time constraints, the project successfully delivers all mandatory 
 - Consistent formatting and structure
 - Technical accuracy and detail
 - AI-optimized for further development
+- **Response Caching**: Redis-based caching for faster repeated requests
+- **API Key Management**: Secure caching of user-provided API keys
+
+### Performance & Scalability
+- **Rate Limiting**: Configurable request limits per user
+- **Caching System**: Redis-based caching for AI responses and API keys
+- **User Analytics**: Activity tracking and usage statistics
+- **Real-time Status**: Live generation progress tracking
 
 ### Professional Export
 - Multiple file formats (Markdown)

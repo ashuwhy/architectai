@@ -5,6 +5,8 @@ import JSZip from 'jszip';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { ChevronDown, Download, FileText, Code, Layers, Database, Shield, GitBranch, Package } from 'lucide-react';
+import { saveDocumentHistory, DocumentHistory } from '../services/firebase';
+import { useAuth } from './auth/AuthProvider';
 import { 
   generateTechStackFromOverview, 
   generateApiEndpointsFromOverview, 
@@ -21,6 +23,7 @@ interface DocumentViewerProps {
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ content, isExecuting, planExists, apiKey, originalPrompt }) => {
+  const { user } = useAuth();
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [isGeneratingFiles, setIsGeneratingFiles] = useState(false);
 
@@ -367,16 +370,30 @@ Prompts to be generated based on project requirements.
   // Download all files as a zip (simplified version - downloads individually)
   const handleDownloadAll = async () => {
     try {
+      console.log('Starting download process...');
+      setIsGeneratingFiles(true);
+      
       const files = await generateAIOptimizedFiles();
+      console.log('Generated files:', files.length, files.map(f => f.name));
+      
+      if (files.length === 0) {
+        console.error('No files generated');
+        alert('No files to download. Please ensure the document is complete.');
+        return;
+      }
+      
       const zip = new JSZip();
       
       // Add all files to the ZIP
       files.forEach((file) => {
+        console.log('Adding file to ZIP:', file.name);
         zip.file(file.name, file.content);
       });
       
       // Generate the ZIP file
+      console.log('Generating ZIP file...');
       const zipBlob = await zip.generateAsync({ type: 'blob' });
+      console.log('ZIP file generated, size:', zipBlob.size, 'bytes');
       
       // Create download link
       const url = URL.createObjectURL(zipBlob);
@@ -387,17 +404,29 @@ Prompts to be generated based on project requirements.
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      console.log('Download initiated successfully');
+      
+      // Save exported files to database
+      await saveExportedFilesToDatabase(files);
+      
     } catch (error) {
       console.error('Error creating ZIP file:', error);
+      alert('Error creating download file. Please try again.');
+    } finally {
+      setIsGeneratingFiles(false);
     }
   };
 
   // Download single file
   const handleDownloadSingle = async (fileName: string) => {
     try {
+      console.log('Downloading single file:', fileName);
       const files = await generateAIOptimizedFiles();
       const file = files.find(f => f.name === fileName);
+      
       if (file) {
+        console.log('File found, creating download...');
         const blob = new Blob([file.content], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -407,9 +436,89 @@ Prompts to be generated based on project requirements.
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        console.log('Single file download completed');
+        
+        // Save single file to database
+        await saveExportedFilesToDatabase([file]);
+        
+      } else {
+        console.error('File not found:', fileName);
+        alert(`File "${fileName}" not found. Please try again.`);
       }
     } catch (error) {
       console.error('Error downloading single file:', error);
+      alert('Error downloading file. Please try again.');
+    }
+  };
+
+  // Save exported files to database
+  const saveExportedFilesToDatabase = async (files: Array<{name: string, content: string}>) => {
+    if (!user || !originalPrompt) return;
+    
+    try {
+      const exportedFiles = files.map(file => ({
+        name: file.name,
+        content: file.content,
+        type: 'markdown'
+      }));
+      
+      await saveDocumentHistory({
+        userId: user.uid,
+        prompt: originalPrompt,
+        plan: [], // We don't have the plan here, but we have the exported files
+        documentContent: content,
+        title: `Exported Files - ${originalPrompt.substring(0, 30)}...`,
+        exportedFiles: exportedFiles,
+        metadata: {
+          totalSections: files.length,
+          documentLength: content.length
+        }
+      });
+      
+      console.log('✅ Exported files saved to Firestore database');
+    } catch (error) {
+      console.error('❌ Error saving exported files to database:', error);
+    }
+  };
+
+  // Simple download of the main document
+  const handleDownloadMainDocument = async () => {
+    try {
+      console.log('Downloading main document...');
+      const blob = new Blob([content], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `system-design-document-${new Date().toISOString().split('T')[0]}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      console.log('Main document download completed');
+      
+      // Save main document to database
+      if (user && originalPrompt) {
+        try {
+          await saveDocumentHistory({
+            userId: user.uid,
+            prompt: originalPrompt,
+            plan: [],
+            documentContent: content,
+            title: `Main Document - ${originalPrompt.substring(0, 30)}...`,
+            metadata: {
+              totalSections: 1,
+              documentLength: content.length
+            }
+          });
+          console.log('✅ Main document saved to Firestore database');
+        } catch (error) {
+          console.error('❌ Error saving main document to database:', error);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error downloading main document:', error);
+      alert('Error downloading document. Please try again.');
     }
   };
 
@@ -454,55 +563,15 @@ Prompts to be generated based on project requirements.
             </div>
           )}
           {content && !isExecuting && (
-            <div className="relative">
+            <div className="flex items-center gap-2">
               <Button 
-                onClick={() => setShowExportOptions(!showExportOptions)}
+                onClick={handleDownloadMainDocument}
                 variant="outline"
                 className="flex items-center gap-2 border-border/50 hover:border-primary/50 hover:bg-muted/30 transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 <Download className="w-4 h-4" />
-                <span className="font-medium">Export for AI</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showExportOptions ? 'rotate-180' : ''}`} />
+                <span className="font-medium">Download Document</span>
               </Button>
-              
-              {showExportOptions && (
-                <div className="absolute right-0 mt-2 w-72 bg-background/95 backdrop-blur-sm border border-border/50 rounded-xl shadow-2xl p-3 z-10">
-                  <div className="mb-3">
-                    <Button
-                      onClick={handleDownloadAll}
-                      variant="default"
-                      className="w-full justify-start gap-3 h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-md hover:shadow-lg"
-                      size="sm"
-                      disabled={isGeneratingFiles}
-                    >
-                      <Package className="w-4 h-4" />
-                      <span className="font-medium">
-                        {isGeneratingFiles ? 'Generating Files...' : 'Download All Files'}
-                      </span>
-                    </Button>
-                  </div>
-                  <div className="border-t border-border/30 pt-3 space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground px-2 py-1 mb-2">Individual Files:</p>
-                    {exportFiles.map((file) => (
-                        <Button
-                          key={file.name}
-                          onClick={() => handleDownloadSingle(file.name)}
-                          variant="default"
-                        className="w-full justify-start gap-3 text-xs h-9 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-md hover:shadow-lg rounded-lg group mb-[10px]"
-                        size="sm"
-                        disabled={isGeneratingFiles}
-                      >
-                        <span className="text-white group-hover:text-white transition-colors duration-200">
-                          {file.icon}
-                        </span>
-                        <span className="text-white group-hover:text-white transition-colors duration-200">
-                          {file.name}
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>

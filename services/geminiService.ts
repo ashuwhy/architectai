@@ -1,20 +1,55 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { PlanItem, PlanStatus } from '../types';
+import { 
+  cacheAIResponse, 
+  getCachedAIResponse, 
+  cacheGeminiApiKey, 
+  getCachedGeminiApiKey,
+  clearCachedGeminiApiKey 
+} from './redis';
 
-// Get API key from environment or use custom key
-function getApiKey(customApiKey?: string): string {
+// Get API key from environment, cache, or use custom key
+async function getApiKey(customApiKey?: string, userId?: string): Promise<string> {
+  // Priority: custom key > cached key > environment key
   if (customApiKey) {
+    // Cache the custom API key for the user
+    if (userId) {
+      await cacheGeminiApiKey(userId, customApiKey);
+    }
     return customApiKey;
   }
-  if (process.env.API_KEY) {
-    return process.env.API_KEY;
+  
+  // Try to get cached API key for user
+  if (userId) {
+    const cachedKey = await getCachedGeminiApiKey(userId);
+    if (cachedKey) {
+      return cachedKey;
+    }
   }
+  
+  // Fall back to environment variable
+  if (process.env.GEMINI_API_KEY) {
+    return process.env.GEMINI_API_KEY;
+  }
+  
   throw new Error("No API key provided. Please configure your Gemini API key.");
 }
 
-export async function generatePlan(appDescription: string, customApiKey?: string): Promise<PlanItem[]> {
-  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+export async function generatePlan(
+  appDescription: string, 
+  customApiKey?: string, 
+  userId?: string
+): Promise<PlanItem[]> {
+  // Check cache first
+  const cacheKey = `plan:${appDescription}`;
+  const cached = await getCachedAIResponse(cacheKey);
+  if (cached) {
+    console.log('⚡ Using cached plan for:', appDescription.substring(0, 50));
+    return cached;
+  }
+
+  const ai = new GoogleGenAI({ apiKey: await getApiKey(customApiKey, userId) });
   const prompt = `
     As a Lead Software Architect (Planner Agent), your task is to take a high-level application description and create a structured plan for a comprehensive system design document. 
     Break down the document into essential sections. For each section, provide a clear title and a brief description of what it should cover.
@@ -51,11 +86,17 @@ export async function generatePlan(appDescription: string, customApiKey?: string
     });
 
     const parsedPlan = JSON.parse(response.text);
-    return parsedPlan.map((item: { title: string; description: string; }, index: number) => ({
+    const planItems = parsedPlan.map((item: { title: string; description: string; }, index: number) => ({
       ...item,
       id: `section-${index}-${Date.now()}`,
       status: PlanStatus.Pending,
     }));
+
+    // Cache the result
+    await cacheAIResponse(cacheKey, planItems, 3600); // Cache for 1 hour
+    console.log('💾 Plan cached for:', appDescription.substring(0, 50));
+    
+    return planItems;
   } catch (error) {
     console.error("Error generating plan:", error);
     throw new Error("Failed to generate a plan from the AI. Please check the console for details.");
@@ -67,9 +108,17 @@ export async function generateSectionContent(
   appDescription: string, 
   sectionTitle: string,
   documentContext: string,
-  customApiKey?: string
+  customApiKey?: string,
+  userId?: string
 ): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  // Check cache first
+  const cacheKey = `section:${sectionTitle}:${appDescription}`;
+  const cached = await getCachedAIResponse(cacheKey);
+  if (cached) {
+    console.log('⚡ Using cached section for:', sectionTitle);
+    return cached;
+  }
+  const ai = new GoogleGenAI({ apiKey: await getApiKey(customApiKey, userId) });
   const prompt = `
     As a Senior Software Engineer (Executor Agent), your task is to write a specific section of a system design document.
     
@@ -91,7 +140,14 @@ export async function generateSectionContent(
       model: "gemini-2.5-flash",
       contents: prompt,
     });
-    return response.text;
+    
+    const content = response.text;
+    
+    // Cache the result
+    await cacheAIResponse(cacheKey, content, 3600); // Cache for 1 hour
+    console.log('💾 Section cached for:', sectionTitle);
+    
+    return content;
   } catch (error) {
     console.error(`Error generating content for section "${sectionTitle}":`, error);
     throw new Error(`Failed to generate content for section "${sectionTitle}".`);
@@ -101,9 +157,10 @@ export async function generateSectionContent(
 // AI-powered analysis functions for generating specific documentation files
 export async function generateTechStackFromOverview(
   projectDescription: string,
-  customApiKey?: string
+  customApiKey?: string,
+  userId?: string
 ): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const ai = new GoogleGenAI({ apiKey: await getApiKey(customApiKey, userId) });
   const prompt = `
     As a Senior Software Architect, analyze the following project description and generate a comprehensive technology stack specification.
     
@@ -140,9 +197,10 @@ export async function generateTechStackFromOverview(
 
 export async function generateApiEndpointsFromOverview(
   projectDescription: string,
-  customApiKey?: string
+  customApiKey?: string,
+  userId?: string
 ): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const ai = new GoogleGenAI({ apiKey: await getApiKey(customApiKey, userId) });
   const prompt = `
     As a Senior Backend Engineer, analyze the following project description and generate a comprehensive API endpoints specification.
     
@@ -179,9 +237,10 @@ export async function generateApiEndpointsFromOverview(
 
 export async function generateImplementationTasksFromOverview(
   projectDescription: string,
-  customApiKey?: string
+  customApiKey?: string,
+  userId?: string
 ): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const ai = new GoogleGenAI({ apiKey: await getApiKey(customApiKey, userId) });
   const prompt = `
     As a Senior Project Manager and Technical Lead, analyze the following project description and generate a comprehensive implementation task list.
     
@@ -218,9 +277,10 @@ export async function generateImplementationTasksFromOverview(
 
 export async function generateAiPromptsFromOverview(
   projectDescription: string,
-  customApiKey?: string
+  customApiKey?: string,
+  userId?: string
 ): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const ai = new GoogleGenAI({ apiKey: await getApiKey(customApiKey, userId) });
   const prompt = `
     As a Senior AI Engineer and Technical Writer, analyze the following project description and generate optimized prompts for AI coding assistants.
     
@@ -252,5 +312,15 @@ export async function generateAiPromptsFromOverview(
   } catch (error) {
     console.error("Error generating AI prompts:", error);
     throw new Error("Failed to generate AI prompts from project overview.");
+  }
+}
+
+// Utility function to clear cached API key for a user
+export async function clearUserApiKey(userId: string): Promise<boolean> {
+  try {
+    return await clearCachedGeminiApiKey(userId);
+  } catch (error) {
+    console.error("Error clearing user API key:", error);
+    return false;
   }
 }
