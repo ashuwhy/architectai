@@ -81,7 +81,7 @@ const RedisStatus: React.FC<RedisStatusProps> = ({ isGenerating }) => {
       {generationStatus && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2" style={{ fontFamily: 'Lineal, serif' }}>
               <Zap className="h-4 w-4 text-primary" />
               Generation Status
             </CardTitle>
@@ -110,7 +110,7 @@ const RedisStatus: React.FC<RedisStatusProps> = ({ isGenerating }) => {
       {/* User Stats */}
       <Card className="mb-4">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="text-sm flex items-center gap-2" style={{ fontFamily: 'Lineal, serif' }}>
             <BarChart3 className="h-4 w-4" />
             Usage Statistics
           </CardTitle>
@@ -133,7 +133,7 @@ const RedisStatus: React.FC<RedisStatusProps> = ({ isGenerating }) => {
       {recentActivity.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2" style={{ fontFamily: 'Lineal, serif' }}>
               <Activity className="h-4 w-4" />
               Recent Activity
             </CardTitle>
