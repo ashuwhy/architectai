@@ -188,7 +188,9 @@ function App() {
               <DocumentViewer 
                 content={documentContent} 
                 isExecuting={isExecuting} 
-                planExists={plan.length > 0} 
+                planExists={plan.length > 0}
+                apiKey={apiKey}
+                originalPrompt={prompt}
               />
             </main>
           </div>

@@ -5,15 +5,24 @@ import JSZip from 'jszip';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { ChevronDown, Download, FileText, Code, Layers, Database, Shield, GitBranch, Package } from 'lucide-react';
+import { 
+  generateTechStackFromOverview, 
+  generateApiEndpointsFromOverview, 
+  generateImplementationTasksFromOverview, 
+  generateAiPromptsFromOverview 
+} from '../services/geminiService';
 
 interface DocumentViewerProps {
   content: string;
   isExecuting: boolean;
   planExists: boolean;
+  apiKey?: string;
+  originalPrompt?: string;
 }
 
-const DocumentViewer: React.FC<DocumentViewerProps> = ({ content, isExecuting, planExists }) => {
+const DocumentViewer: React.FC<DocumentViewerProps> = ({ content, isExecuting, planExists, apiKey, originalPrompt }) => {
   const [showExportOptions, setShowExportOptions] = useState(false);
+  const [isGeneratingFiles, setIsGeneratingFiles] = useState(false);
 
   // Parse content into sections for better AI tool consumption
   const parseContentIntoSections = (fullContent: string) => {
@@ -97,13 +106,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ content, isExecuting, p
     return sections;
   };
 
-  // Generate individual markdown files optimized for AI coding assistants
-  const generateAIOptimizedFiles = () => {
+  // Generate individual markdown files optimized for AI coding assistants using AI analysis
+  const generateAIOptimizedFiles = async () => {
     const timestamp = new Date().toISOString().split('T')[0];
     const sections = parseContentIntoSections(content);
     const files = [];
 
-    // 1. PROJECT_OVERVIEW.md
+    // 1. PROJECT_OVERVIEW.md (static - based on parsed content)
     if (sections.overview) {
       files.push({
         name: 'PROJECT_OVERVIEW.md',
@@ -129,60 +138,7 @@ ${sections.overview}
       });
     }
 
-    // 2. TECH_STACK.md
-    if (sections.techStack) {
-      files.push({
-        name: 'TECH_STACK.md',
-        icon: <Package className="w-4 h-4" />,
-        content: `# Technology Stack
-<!-- AI Assistant Context: These are the required technologies. Ensure all code uses these specific versions and frameworks. -->
-
-${sections.techStack}
-
-## Package Installation Commands
-
-### Frontend Dependencies
-\`\`\`bash
-# Add your npm/yarn commands here based on the tech stack
-npm install [packages]
-\`\`\`
-
-### Backend Dependencies
-\`\`\`bash
-# Add your npm/yarn commands here based on the tech stack
-npm install [packages]
-\`\`\`
-
-## Configuration Templates
-<!-- AI: Generate configuration files based on these technologies -->
-
-### tsconfig.json
-\`\`\`json
-{
-  "compilerOptions": {
-    // Add appropriate TypeScript config
-  }
-}
-\`\`\`
-
-### package.json scripts
-\`\`\`json
-{
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  }
-}
-\`\`\`
-
----
-*Optimized for AI-assisted development*
-*Date: ${timestamp}*`
-      });
-    }
-
-    // 3. ARCHITECTURE.md
+    // 2. ARCHITECTURE.md (static - based on parsed content)
     if (sections.architecture) {
       files.push({
         name: 'ARCHITECTURE.md',
@@ -221,7 +177,7 @@ src/
       });
     }
 
-    // 4. DATABASE_SCHEMA.md
+    // 3. DATABASE_SCHEMA.md (static - based on parsed content)
     if (sections.database) {
       files.push({
         name: 'DATABASE_SCHEMA.md',
@@ -253,172 +209,172 @@ ${sections.database}
       });
     }
 
-    // 5. API_ENDPOINTS.md
-    if (sections.api) {
+    // AI-generated files based on original prompt and project overview
+    if (originalPrompt && apiKey) {
+      try {
+        setIsGeneratingFiles(true);
+
+        // Use the original prompt as the primary input for AI generation
+        const promptForAI = originalPrompt;
+
+        // 4. TECH_STACK.md (AI-generated)
+        const techStackContent = await generateTechStackFromOverview(promptForAI, apiKey);
+        files.push({
+          name: 'TECH_STACK.md',
+          icon: <Package className="w-4 h-4" />,
+          content: techStackContent
+        });
+
+        // 5. API_ENDPOINTS.md (AI-generated)
+        const apiEndpointsContent = await generateApiEndpointsFromOverview(promptForAI, apiKey);
+        files.push({
+          name: 'API_ENDPOINTS.md',
+          icon: <GitBranch className="w-4 h-4" />,
+          content: apiEndpointsContent
+        });
+
+        // 6. IMPLEMENTATION_TASKS.md (AI-generated)
+        const implementationTasksContent = await generateImplementationTasksFromOverview(promptForAI, apiKey);
+        files.push({
+          name: 'IMPLEMENTATION_TASKS.md',
+          icon: <Code className="w-4 h-4" />,
+          content: implementationTasksContent
+        });
+
+        // 7. PROMPTS_FOR_AI.md (AI-generated)
+        const aiPromptsContent = await generateAiPromptsFromOverview(promptForAI, apiKey);
+        files.push({
+          name: 'PROMPTS_FOR_AI.md',
+          icon: <Shield className="w-4 h-4" />,
+          content: aiPromptsContent
+        });
+
+      } catch (error) {
+        console.error('Error generating AI-powered files:', error);
+        // Fallback to static templates if AI generation fails
+        files.push({
+          name: 'TECH_STACK.md',
+          icon: <Package className="w-4 h-4" />,
+          content: `# Technology Stack
+<!-- AI Assistant Context: These are the required technologies. Ensure all code uses these specific versions and frameworks. -->
+
+${sections.techStack || 'Technology stack to be defined based on project requirements.'}
+
+---
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+        });
+
+        files.push({
+          name: 'API_ENDPOINTS.md',
+          icon: <GitBranch className="w-4 h-4" />,
+          content: `# API Endpoints Specification
+<!-- AI Assistant Context: Implement these exact endpoints with the specified request/response formats. -->
+
+${sections.api || 'API endpoints to be defined based on project requirements.'}
+
+---
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+        });
+
+        files.push({
+          name: 'IMPLEMENTATION_TASKS.md',
+          icon: <Code className="w-4 h-4" />,
+          content: `# Implementation Tasks
+<!-- AI Assistant Context: Complete these tasks in order. Each task should be a separate commit. -->
+
+${sections.tasks || 'Tasks to be defined based on project requirements.'}
+
+---
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+        });
+
+        files.push({
+          name: 'PROMPTS_FOR_AI.md',
+          icon: <Shield className="w-4 h-4" />,
+          content: `# AI Assistant Prompts
+<!-- These are optimized prompts to use with Claude, Cursor, or other AI coding assistants -->
+
+Prompts to be generated based on project requirements.
+
+---
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+        });
+      } finally {
+        setIsGeneratingFiles(false);
+      }
+    } else if (originalPrompt && !apiKey) {
+      // Show placeholder files when no API key is available
+      files.push({
+        name: 'TECH_STACK.md',
+        icon: <Package className="w-4 h-4" />,
+        content: `# Technology Stack
+<!-- AI Assistant Context: These are the required technologies. Ensure all code uses these specific versions and frameworks. -->
+
+${sections.techStack || 'Technology stack to be defined based on project requirements.'}
+
+---
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+      });
+
       files.push({
         name: 'API_ENDPOINTS.md',
         icon: <GitBranch className="w-4 h-4" />,
         content: `# API Endpoints Specification
 <!-- AI Assistant Context: Implement these exact endpoints with the specified request/response formats. -->
 
-${sections.api}
-
-## Implementation Template
-\`\`\`typescript
-// AI: Use this template for all API endpoints
-
-import { NextApiRequest, NextApiResponse } from 'next';
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  try {
-    // Validate request method
-    // Validate request body
-    // Process business logic
-    // Return response
-  } catch (error) {
-    // Handle errors appropriately
-  }
-}
-\`\`\`
-
-## Error Response Format
-\`\`\`json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human readable error message",
-    "details": {}
-  }
-}
-\`\`\`
+${sections.api || 'API endpoints to be defined based on project requirements.'}
 
 ---
-*API implementation guide*
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+      });
+
+      files.push({
+        name: 'IMPLEMENTATION_TASKS.md',
+        icon: <Code className="w-4 h-4" />,
+        content: `# Implementation Tasks
+<!-- AI Assistant Context: Complete these tasks in order. Each task should be a separate commit. -->
+
+${sections.tasks || 'Tasks to be defined based on project requirements.'}
+
+---
+*Generated for AI-assisted development*
+*Date: ${timestamp}*`
+      });
+
+      files.push({
+        name: 'PROMPTS_FOR_AI.md',
+        icon: <Shield className="w-4 h-4" />,
+        content: `# AI Assistant Prompts
+<!-- These are optimized prompts to use with Claude, Cursor, or other AI coding assistants -->
+
+Prompts to be generated based on project requirements.
+
+---
+*Generated for AI-assisted development*
 *Date: ${timestamp}*`
       });
     }
-
-    // 6. IMPLEMENTATION_TASKS.md
-    const tasksContent = `# Implementation Tasks
-<!-- AI Assistant Context: Complete these tasks in order. Each task should be a separate commit. -->
-
-${sections.tasks || '## Tasks to be defined based on project requirements'}
-
-## Task Execution Order
-
-### Phase 1: Foundation
-- [ ] Set up project structure
-- [ ] Install dependencies
-- [ ] Configure development environment
-- [ ] Set up version control
-
-### Phase 2: Backend Development
-- [ ] Create database schema
-- [ ] Implement data models
-- [ ] Build API endpoints
-- [ ] Add authentication/authorization
-
-### Phase 3: Frontend Development
-- [ ] Create component library
-- [ ] Implement pages/routes
-- [ ] Connect to backend API
-- [ ] Add state management
-
-### Phase 4: Integration & Testing
-- [ ] Write unit tests
-- [ ] Implement integration tests
-- [ ] Perform end-to-end testing
-- [ ] Fix bugs and optimize
-
-### Phase 5: Deployment
-- [ ] Set up CI/CD pipeline
-- [ ] Configure production environment
-- [ ] Deploy application
-- [ ] Monitor and maintain
-
-## Code Generation Instructions
-For each task:
-1. Read the relevant documentation files
-2. Generate complete, production-ready code
-3. Include proper error handling
-4. Add appropriate comments
-5. Ensure TypeScript types are defined
-
----
-*Task list for AI-assisted development*
-*Date: ${timestamp}*`;
-
-    files.push({
-      name: 'IMPLEMENTATION_TASKS.md',
-      icon: <Code className="w-4 h-4" />,
-      content: tasksContent
-    });
-
-    // 7. PROMPTS_FOR_AI.md
-    const promptsContent = `# AI Assistant Prompts
-<!-- These are optimized prompts to use with Claude, Cursor, or other AI coding assistants -->
-${sections.overview ? `## Initial Setup Prompt
-\`\`\`
-Based on PROJECT_OVERVIEW.md and TECH_STACK.md, create the initial project structure with all necessary configuration files, including package.json, tsconfig.json, and any framework-specific configs.
-\`\`\`
-` : ''}
-${sections.architecture ? `## Component Generation Prompt
-\`\`\`
-Using ARCHITECTURE.md as a guide, create a [ComponentName] component that [describe functionality]. Follow the established patterns and include TypeScript types, error handling, and proper documentation.
-\`\`\`
-` : ''}
-${sections.api ? `## API Endpoint Creation Prompt
-\`\`\`
-Based on API_ENDPOINTS.md, implement the [endpoint name] endpoint. Include request validation, error handling, and proper TypeScript types. Follow RESTful conventions and the established error format.
-\`\`\`
-` : ''}
-${sections.database ? `## Database Model Prompt
-\`\`\`
-Using DATABASE_SCHEMA.md, create the [Model name] model with all relationships and validations. Include migration files and seed data for development.
-\`\`\`
-` : ''}
-${sections.testing ? `## Testing Prompt
-\`\`\`
-Write comprehensive tests for [component/function/endpoint]. Include unit tests, edge cases, and error scenarios. Use the project's testing framework and follow best practices.
-\`\`\`
-` : ''}
-## Refactoring Prompt
-\`\`\`
-Refactor [code section] to improve performance/readability/maintainability. Ensure backward compatibility and add appropriate tests for the changes.
-\`\`\`
-
-## Bug Fix Prompt
-\`\`\`
-Debug and fix [describe issue]. Provide a detailed explanation of the root cause and implement a robust solution with proper error handling.
-\`\`\`
-
----
-*Prompt templates for AI-assisted development*
-*Date: ${timestamp}*`;
-
-    files.push({
-      name: 'PROMPTS_FOR_AI.md',
-      icon: <Shield className="w-4 h-4" />,
-      content: promptsContent
-    });
 
     return files;
   };
 
   // Download all files as a zip (simplified version - downloads individually)
   const handleDownloadAll = async () => {
-    const files = generateAIOptimizedFiles();
-    const zip = new JSZip();
-    
-    // Add all files to the ZIP
-    files.forEach((file) => {
-      zip.file(file.name, file.content);
-    });
-    
     try {
+      const files = await generateAIOptimizedFiles();
+      const zip = new JSZip();
+      
+      // Add all files to the ZIP
+      files.forEach((file) => {
+        zip.file(file.name, file.content);
+      });
+      
       // Generate the ZIP file
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       
@@ -437,19 +393,35 @@ Debug and fix [describe issue]. Provide a detailed explanation of the root cause
   };
 
   // Download single file
-  const handleDownloadSingle = (fileName: string, content: string) => {
-    const blob = new Blob([content], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleDownloadSingle = async (fileName: string) => {
+    try {
+      const files = await generateAIOptimizedFiles();
+      const file = files.find(f => f.name === fileName);
+      if (file) {
+        const blob = new Blob([file.content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Error downloading single file:', error);
+    }
   };
 
-  const exportFiles = generateAIOptimizedFiles();
+  // Generate export files for display (this will be called when needed)
+  const [exportFiles, setExportFiles] = useState<Array<{name: string, icon: React.ReactNode, content: string}>>([]);
+  
+  // Load export files when content changes
+  React.useEffect(() => {
+    if (content && planExists) {
+      generateAIOptimizedFiles().then(setExportFiles).catch(console.error);
+    }
+  }, [content, planExists, apiKey, originalPrompt]);
 
   return (
     <div className="w-full">
@@ -501,20 +473,24 @@ Debug and fix [describe issue]. Provide a detailed explanation of the root cause
                       variant="default"
                       className="w-full justify-start gap-3 h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-md hover:shadow-lg"
                       size="sm"
+                      disabled={isGeneratingFiles}
                     >
                       <Package className="w-4 h-4" />
-                      <span className="font-medium">Download All Files</span>
+                      <span className="font-medium">
+                        {isGeneratingFiles ? 'Generating Files...' : 'Download All Files'}
+                      </span>
                     </Button>
                   </div>
                   <div className="border-t border-border/30 pt-3 space-y-1">
                     <p className="text-xs font-medium text-muted-foreground px-2 py-1 mb-2">Individual Files:</p>
                     {exportFiles.map((file) => (
-                      <Button
-                        key={file.name}
-                        onClick={() => handleDownloadSingle(file.name, file.content)}
-                        variant="default" 
-                        className="w-full justify-start gap-3 text-xs h-9 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-md hover:shadow-lg rounded-lg group"
+                        <Button
+                          key={file.name}
+                          onClick={() => handleDownloadSingle(file.name)}
+                          variant="default"
+                        className="w-full justify-start gap-3 text-xs h-9 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-md hover:shadow-lg rounded-lg group mb-[10px]"
                         size="sm"
+                        disabled={isGeneratingFiles}
                       >
                         <span className="text-white group-hover:text-white transition-colors duration-200">
                           {file.icon}

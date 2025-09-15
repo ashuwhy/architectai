@@ -97,3 +97,160 @@ export async function generateSectionContent(
     throw new Error(`Failed to generate content for section "${sectionTitle}".`);
   }
 }
+
+// AI-powered analysis functions for generating specific documentation files
+export async function generateTechStackFromOverview(
+  projectDescription: string,
+  customApiKey?: string
+): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const prompt = `
+    As a Senior Software Architect, analyze the following project description and generate a comprehensive technology stack specification.
+    
+    Project Description:
+    ---
+    ${projectDescription}
+    ---
+    
+    Generate a detailed TECH_STACK.md file that includes:
+    1. Frontend technologies (React, Vue, Angular, etc.)
+    2. Backend technologies (Node.js, Python, Java, etc.)
+    3. Database technologies (PostgreSQL, MongoDB, Redis, etc.)
+    4. Cloud services and infrastructure
+    5. Development tools and frameworks
+    6. Package installation commands
+    7. Configuration templates
+    
+    Base your recommendations on the project requirements, scale, and complexity described in the project description.
+    Include specific versions and reasoning for each technology choice.
+    Format as a complete markdown document ready for AI-assisted development.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating tech stack:", error);
+    throw new Error("Failed to generate tech stack from project overview.");
+  }
+}
+
+export async function generateApiEndpointsFromOverview(
+  projectDescription: string,
+  customApiKey?: string
+): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const prompt = `
+    As a Senior Backend Engineer, analyze the following project description and generate a comprehensive API endpoints specification.
+    
+    Project Description:
+    ---
+    ${projectDescription}
+    ---
+    
+    Generate a detailed API_ENDPOINTS.md file that includes:
+    1. RESTful API endpoints based on the project requirements
+    2. Request/response formats for each endpoint
+    3. Authentication and authorization requirements
+    4. Error handling specifications
+    5. API versioning strategy
+    6. Rate limiting considerations
+    7. Implementation templates and examples
+    
+    Base your API design on the features and functionality described in the project description.
+    Include proper HTTP methods, status codes, and data validation requirements.
+    Format as a complete markdown document ready for AI-assisted development.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating API endpoints:", error);
+    throw new Error("Failed to generate API endpoints from project overview.");
+  }
+}
+
+export async function generateImplementationTasksFromOverview(
+  projectDescription: string,
+  customApiKey?: string
+): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const prompt = `
+    As a Senior Project Manager and Technical Lead, analyze the following project description and generate a comprehensive implementation task list.
+    
+    Project Description:
+    ---
+    ${projectDescription}
+    ---
+    
+    Generate a detailed IMPLEMENTATION_TASKS.md file that includes:
+    1. Phased development approach (Foundation, Backend, Frontend, Integration, Deployment)
+    2. Specific, actionable tasks for each phase
+    3. Task dependencies and prerequisites
+    4. Estimated complexity and time requirements
+    5. Testing and quality assurance tasks
+    6. Deployment and DevOps tasks
+    7. Code generation instructions for AI assistants
+    
+    Break down the project into manageable, sequential tasks that can be completed by AI coding assistants.
+    Include checkboxes for tracking progress and clear acceptance criteria for each task.
+    Format as a complete markdown document ready for AI-assisted development.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating implementation tasks:", error);
+    throw new Error("Failed to generate implementation tasks from project overview.");
+  }
+}
+
+export async function generateAiPromptsFromOverview(
+  projectDescription: string,
+  customApiKey?: string
+): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: getApiKey(customApiKey) });
+  const prompt = `
+    As a Senior AI Engineer and Technical Writer, analyze the following project description and generate optimized prompts for AI coding assistants.
+    
+    Project Description:
+    ---
+    ${projectDescription}
+    ---
+    
+    Generate a detailed PROMPTS_FOR_AI.md file that includes:
+    1. Initial setup prompts for project scaffolding
+    2. Component generation prompts for UI development
+    3. API endpoint creation prompts for backend development
+    4. Database model creation prompts
+    5. Testing and debugging prompts
+    6. Refactoring and optimization prompts
+    7. Deployment and DevOps prompts
+    
+    Create specific, actionable prompts that AI assistants can use to generate high-quality code.
+    Include context about the project's architecture, tech stack, and requirements.
+    Format as a complete markdown document with ready-to-use prompt templates.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating AI prompts:", error);
+    throw new Error("Failed to generate AI prompts from project overview.");
+  }
+}
