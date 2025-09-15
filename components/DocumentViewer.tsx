@@ -17,7 +17,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ content, isExecuting, p
 
   // Parse content into sections for better AI tool consumption
   const parseContentIntoSections = (fullContent: string) => {
-    const sections = {
+    const sections: Record<string, string> = {
       overview: '',
       techStack: '',
       architecture: '',
@@ -29,71 +29,67 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ content, isExecuting, p
       deployment: '',
       tasks: '',
       testing: '',
-      monitoring: ''
+      monitoring: '',
+      performance: '' // Added this missing section
     };
 
-    // Simple parsing logic - you can enhance this based on your actual content structure
+    const sectionMap: { [key: string]: keyof typeof sections } = {
+      'architecture overview': 'architecture',
+      'system components': 'overview', // Components can be part of the overview
+      'data design': 'database',
+      'technology stack': 'techStack',
+      'api design': 'api',
+      'user interface design': 'frontend',
+      'security considerations': 'security',
+      'performance optimization': 'performance', // This was missing in the original sections object
+      'deployment architecture': 'deployment',
+      'future scalability': 'overview' // Can be part of overview or deployment, for simplicity put in overview
+    };
+
     const lines = fullContent.split('\n');
-    let currentSection = 'overview';
-    let sectionContent = '';
+    let currentSectionKey: keyof typeof sections = 'overview';
+    let sectionContentBuffer: string[] = [];
 
     lines.forEach(line => {
-      const lowerLine = line.toLowerCase();
-      
-      // Detect section changes
-      if (lowerLine.includes('tech stack') || lowerLine.includes('technology stack')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'techStack';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('architecture') || lowerLine.includes('system design')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'architecture';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('database') || lowerLine.includes('data model')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'database';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('api') || lowerLine.includes('endpoints')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'api';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('frontend') || lowerLine.includes('client')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'frontend';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('backend') || lowerLine.includes('server')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'backend';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('security') || lowerLine.includes('authentication')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'security';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('deployment') || lowerLine.includes('infrastructure')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'deployment';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('task') || lowerLine.includes('implementation')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'tasks';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('test') || lowerLine.includes('quality')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'testing';
-        sectionContent = line + '\n';
-      } else if (lowerLine.includes('monitor') || lowerLine.includes('observability')) {
-        if (sectionContent) sections[currentSection] = sectionContent;
-        currentSection = 'monitoring';
-        sectionContent = line + '\n';
+      const trimmedLine = line.trim();
+      const match = trimmedLine.match(/^##\s*(.*)/); // Match lines starting with "## "
+
+      if (match) {
+        // New section found
+        const heading = match[1].toLowerCase();
+        
+        // Save content of the previous section if it exists
+        if (sectionContentBuffer.length > 0) {
+          sections[currentSectionKey] += sectionContentBuffer.join('\n') + '\n';
+          sectionContentBuffer = [];
+        }
+
+        // Determine the new section key
+        let newSectionFound = false;
+        for (const keyword in sectionMap) {
+          if (heading.includes(keyword)) {
+            currentSectionKey = sectionMap[keyword];
+            newSectionFound = true;
+            break;
+          }
+        }
+        if (!newSectionFound) {
+            // If it's a new H2 heading but doesn't match a specific key, add it to overview
+            currentSectionKey = 'overview';
+        }
+        sectionContentBuffer.push(line); // Include the heading itself in the section content
       } else {
-        sectionContent += line + '\n';
+        // Accumulate lines for the current section
+        sectionContentBuffer.push(line);
       }
     });
 
-    // Save the last section
-    if (sectionContent) sections[currentSection] = sectionContent;
+    // Save content of the last section
+    if (sectionContentBuffer.length > 0) {
+      sections[currentSectionKey] += sectionContentBuffer.join('\n') + '\n';
+    }
 
-    // If no sections were detected, put everything in overview
+    // Fallback: If no specific sections were populated, put all content into overview
     if (Object.values(sections).every(s => s === '')) {
       sections.overview = fullContent;
     }
@@ -364,32 +360,31 @@ For each task:
     // 7. PROMPTS_FOR_AI.md
     const promptsContent = `# AI Assistant Prompts
 <!-- These are optimized prompts to use with Claude, Cursor, or other AI coding assistants -->
-
-## Initial Setup Prompt
+${sections.overview ? `## Initial Setup Prompt
 \`\`\`
 Based on PROJECT_OVERVIEW.md and TECH_STACK.md, create the initial project structure with all necessary configuration files, including package.json, tsconfig.json, and any framework-specific configs.
 \`\`\`
-
-## Component Generation Prompt
+` : ''}
+${sections.architecture ? `## Component Generation Prompt
 \`\`\`
 Using ARCHITECTURE.md as a guide, create a [ComponentName] component that [describe functionality]. Follow the established patterns and include TypeScript types, error handling, and proper documentation.
 \`\`\`
-
-## API Endpoint Creation Prompt
+` : ''}
+${sections.api ? `## API Endpoint Creation Prompt
 \`\`\`
 Based on API_ENDPOINTS.md, implement the [endpoint name] endpoint. Include request validation, error handling, and proper TypeScript types. Follow RESTful conventions and the established error format.
 \`\`\`
-
-## Database Model Prompt
+` : ''}
+${sections.database ? `## Database Model Prompt
 \`\`\`
 Using DATABASE_SCHEMA.md, create the [Model name] model with all relationships and validations. Include migration files and seed data for development.
 \`\`\`
-
-## Testing Prompt
+` : ''}
+${sections.testing ? `## Testing Prompt
 \`\`\`
 Write comprehensive tests for [component/function/endpoint]. Include unit tests, edge cases, and error scenarios. Use the project's testing framework and follow best practices.
 \`\`\`
-
+` : ''}
 ## Refactoring Prompt
 \`\`\`
 Refactor [code section] to improve performance/readability/maintainability. Ensure backward compatibility and add appropriate tests for the changes.
@@ -517,14 +512,14 @@ Debug and fix [describe issue]. Provide a detailed explanation of the root cause
                       <Button
                         key={file.name}
                         onClick={() => handleDownloadSingle(file.name, file.content)}
-                        variant="ghost"
-                        className="w-full justify-start gap-3 text-xs h-9 hover:bg-muted/50 transition-all duration-200 rounded-lg group"
+                        variant="default" 
+                        className="w-full justify-start gap-3 text-xs h-9 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-md hover:shadow-lg rounded-lg group"
                         size="sm"
                       >
-                        <span className="text-muted-foreground group-hover:text-primary transition-colors duration-200">
+                        <span className="text-white group-hover:text-white transition-colors duration-200">
                           {file.icon}
                         </span>
-                        <span className="text-foreground/80 group-hover:text-foreground transition-colors duration-200">
+                        <span className="text-white group-hover:text-white transition-colors duration-200">
                           {file.name}
                         </span>
                       </Button>
@@ -552,7 +547,7 @@ Debug and fix [describe issue]. Provide a detailed explanation of the root cause
               </p>
             </div>
           ) : (
-            <div className="prose prose-sm prose-invert max-w-none h-full overflow-y-auto text-sm leading-relaxed text-foreground/90">
+            <div className="prose prose-sm prose-invert max-w-full h-full overflow-y-auto overflow-x-auto text-sm leading-relaxed text-foreground/90">
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
