@@ -1,5 +1,6 @@
 <div align="center">
-  <img src="assets/card/card.png" alt="Architect AI Logo" width="800" />
+  <img src="assets/card/card.png" alt="Architect AI Logo" width="200" />
+  <h1>Architect AI</h1>
   <p><em>Intelligent System Design Documentation</em></p>
 </div>
 
@@ -70,37 +71,62 @@ Despite these time constraints, the project successfully delivers all mandatory 
 ## Technology Stack
 
 ### Frontend
-- **React 18**: Modern React with hooks and functional components
-- **TypeScript**: Type-safe development
-- **Vite**: Fast build tool and development server
-- **Tailwind CSS**: Utility-first CSS framework
+- **React 19.1.1**: Modern React with hooks and functional components
+- **TypeScript 5.8.2**: Type-safe development
+- **Vite 6.2.0**: Fast build tool and development server
+- **Tailwind CSS 4.1.13**: Utility-first CSS framework
 - **shadcn/ui**: Modern, accessible UI components
+- **Radix UI**: Headless UI components for accessibility
 
 ### AI Integration
-- **Google Gemini API**: Advanced AI model for content generation
+- **Google Gemini API (@google/genai 1.19.0)**: Advanced AI model for content generation
 - **Custom Prompt Engineering**: Optimized prompts for system design documentation
+
+### Authentication & UI
+- **Clerk (5.47.0)**: User authentication and management
+- **Lucide React (0.544.0)**: Beautiful icon library
+- **React Markdown (10.1.0)**: Markdown rendering with GitHub Flavored Markdown
 
 ### Development Tools
 - **pnpm**: Fast, efficient package manager
-- **ESLint**: Code linting and quality assurance
-- **PostCSS**: CSS processing and optimization
+- **PostCSS 8.5.6**: CSS processing and optimization
+- **Autoprefixer 10.4.21**: CSS vendor prefixing
+- **JSZip 3.10.1**: ZIP file creation and export functionality
 
 ## Project Structure
 
 ```
-├── src/
-│   ├── components/          # React components
-│   │   ├── ui/             # Reusable UI components
-│   │   ├── DocumentViewer.tsx
-│   │   ├── PlanViewer.tsx
-│   │   └── PromptInput.tsx
-│   ├── services/           # API services
-│   │   └── geminiService.ts
-│   ├── types.ts           # TypeScript type definitions
-│   └── App.tsx            # Main application component
-├── assets/                # Static assets
-├── public/               # Public assets
-└── docs/                 # Project documentation
+├── components/            # React components
+│   ├── ui/               # Reusable UI components (shadcn/ui) customised
+│   │   ├── alert.tsx
+│   │   ├── badge.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── input.tsx
+│   │   └── textarea.tsx
+│   ├── icons/            # Custom icon components
+│   ├── ApiKeyDialog.tsx  # API key management
+│   ├── DocumentViewer.tsx # Document display and export
+│   ├── PlanViewer.tsx    # Plan visualization
+│   └── PromptInput.tsx   # User input interface
+├── services/             # API services
+│   └── geminiService.ts  # Google Gemini API integration
+├── assets/               # Static assets
+│   ├── card/            # Logo and branding
+│   ├── fonts/           # Custom fonts (Fira Code, Funnel Display, Inter, Playfair)
+│   └── icons/           # Icon assets
+├── lib/                  # Utility functions
+│   └── utils.ts         # Helper functions
+├── App.tsx              # Main application component
+├── types.ts             # TypeScript type definitions
+├── index.tsx            # Application entry point
+├── index.html           # HTML template
+├── index.css            # Global styles
+├── tailwind.config.js   # Tailwind CSS configuration
+├── vite.config.ts       # Vite build configuration
+├── tsconfig.json        # TypeScript configuration
+├── components.json      # shadcn/ui configuration
+└── package.json         # Dependencies and scripts
 ```
 
 ## Getting Started
@@ -166,28 +192,38 @@ Despite these time constraints, the project successfully delivers all mandatory 
 
 ## Development Process
 
-### Phase 1: Planning & Setup (2 days)
-- Project requirements analysis
-- Technology stack selection
-- Development environment setup
-- Basic project structure
+### Single 6-Hour Development Session (September 15, 2025)
 
-### Phase 2: Core Development (3 days)
-- AI service integration
-- Core component development
-- User interface implementation
-- Basic functionality testing
+**Hour 1-2: Project Setup and Core Architecture**
+- Project initialization with Vite + React + TypeScript
+- Technology stack selection and setup
+- Basic project structure creation
+- AI service integration planning
+- Core component development (PromptInput, PlanViewer, DocumentViewer)
 
-### Phase 3: Enhancement & Polish (2 days)
-- UI/UX improvements
-- Export functionality
-- Error handling
-- Performance optimization
+**Hour 2-3: AI Service Integration**
+- AI service implementation with Gemini API
+- Prompt engineering and optimization
+- State management implementation
+- Error handling and retry logic
 
-### Phase 4: Documentation & Testing (1 day)
-- Comprehensive documentation
+**Hour 3-4: User Interface Development**
+- UI styling and responsive design
+- Component implementation and integration
+- Real-time progress tracking
+- Basic error handling and user feedback
+
+**Hour 4-5: Export System and Advanced Features**
+- Export system implementation with JSZip
+- Document generation and formatting
+- ZIP file export functionality
+- Enhanced button styling and UI polish
+
+**Hour 5-6: Final Polish and Documentation**
+- UI enhancements and animations
+- Logo integration and branding
+- Comprehensive documentation creation
 - Final testing and bug fixes
-- Project submission preparation
 
 ## Challenges & Solutions
 
