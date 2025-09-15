@@ -139,8 +139,8 @@ Despite these time constraints, the project successfully delivers all mandatory 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd architect-ai
+   git clone https://github.com/ashuwhy/architectai
+   cd architectai
    ```
 
 2. **Install dependencies**
@@ -256,10 +256,9 @@ This project is developed for educational purposes as part of an academic assign
 
 ## Contact
 
-**Developer**: [Your Name]  
-**Institution**: [Your College/University]  
-**Course**: [Course Name]  
-**Submission Date**: [Current Date]
+**Developer**: Ashutosh Sharma 
+**Institution**: IIT Kharagpur    
+<!-- **Submission Date**: [Current Date] -->
 
 ---
 
