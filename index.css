@@ -19,15 +19,31 @@ html, body {
 }
 
 @font-face {
-  font-family: 'Funnel Display';
-  src: url('./assets/fonts/Funnel_Display/FunnelDisplay-VariableFont_wght.ttf') format('truetype');
+  font-family: 'Lineal';
+  src: url('./assets/fonts/Lineal/LinealVF.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Host Grotesk';
+  src: url('./assets/fonts/Host_Grotesk/HostGrotesk-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Host Grotesk';
+  src: url('./assets/fonts/Host_Grotesk/HostGrotesk-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 body {
-  font-family: 'Geist Mono', monospace;
+  font-family: 'Host Grotesk', sans-serif;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;

@@ -50,7 +50,7 @@ const ApiKeyDialog: React.FC<ApiKeyDialogProps> = ({ isOpen, onClose, onSave, cu
       <Card className="w-full max-w-md mx-4 border border-border bg-card shadow-lg">
         <CardContent className="p-6 space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-2" style={{ fontFamily: 'Funnel Display, serif' }}>
+            <h3 className="text-lg font-semibold text-foreground mb-2" style={{ fontFamily: 'Lineal, serif' }}>
               API Configuration
             </h3>
             <p className="text-sm text-muted-foreground/60">
@@ -98,7 +98,7 @@ const ApiKeyDialog: React.FC<ApiKeyDialogProps> = ({ isOpen, onClose, onSave, cu
               onClick={handleSave}
               className="flex-1"
               disabled={!apiKey.trim() || isValidating}
-              style={{ fontFamily: 'Funnel Display, serif' }}
+              style={{ fontFamily: 'Lineal, serif' }}
             >
               {isValidating ? 'Validating...' : 'Save'}
             </Button>

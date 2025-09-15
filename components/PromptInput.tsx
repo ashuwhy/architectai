@@ -24,7 +24,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ prompt, setPrompt, onSubmit, 
           <span className="text-sm font-semibold text-primary">1</span>
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'Funnel Display, serif' }}>Describe Your Application</h2>
+          <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'Lineal, serif' }}>Describe Your Application</h2>
           <p className="text-xs text-muted-foreground/60 mt-1">Describe your system requirements</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ prompt, setPrompt, onSubmit, 
               onClick={onSubmit}
               disabled={isButtonDisabled}
               className="w-full h-10 text-base font-medium bg-primary hover:bg-primary/90 text-black transition-all duration-200 disabled:opacity-50 mt-4"
-              style={{ fontFamily: 'Funnel Display, serif' }}
+              style={{ fontFamily: 'Lineal, serif' }}
             >
               {isLoading ? (
                 <>
@@ -79,7 +79,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ prompt, setPrompt, onSubmit, 
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <h4 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'Funnel Display, serif' }}>
+                <h4 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'Lineal, serif' }}>
                   API Configuration
                 </h4>
                 {apiKey && apiKey.trim().length > 0 && (

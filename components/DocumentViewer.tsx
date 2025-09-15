@@ -431,7 +431,7 @@ Prompts to be generated based on project requirements.
             <span className="text-sm font-semibold text-primary">3</span>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'Funnel Display, serif' }}>
+            <h2 className="text-lg font-semibold text-foreground" style={{ fontFamily: 'Lineal, serif' }}>
               System Design Document
             </h2>
             <p className="text-xs text-muted-foreground/60 mt-1">
@@ -515,7 +515,7 @@ Prompts to be generated based on project requirements.
               <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
                 <span className="text-primary text-2xl">📋</span>
               </div>
-              <h3 className="text-lg font-medium text-foreground" style={{ fontFamily: 'Funnel Display, serif' }}>
+              <h3 className="text-lg font-medium text-foreground" style={{ fontFamily: 'Lineal, serif' }}>
                 No Plan Generated Yet
               </h3>
               <p className="text-sm text-muted-foreground/60 mt-1">
@@ -529,19 +529,19 @@ Prompts to be generated based on project requirements.
                 components={{
                   h1: ({ children }) => (
                     <h1 className="text-2xl font-bold text-foreground mb-4 mt-6 first:mt-0" 
-                        style={{ fontFamily: 'Funnel Display, serif' }}>
+                        style={{ fontFamily: 'Lineal, serif' }}>
                       {children}
                     </h1>
                   ),
                   h2: ({ children }) => (
                     <h2 className="text-xl font-semibold text-foreground mb-3 mt-5" 
-                        style={{ fontFamily: 'Funnel Display, serif' }}>
+                        style={{ fontFamily: 'Lineal, serif' }}>
                       {children}
                     </h2>
                   ),
                   h3: ({ children }) => (
                     <h3 className="text-lg font-medium text-foreground mb-2 mt-4" 
-                        style={{ fontFamily: 'Funnel Display, serif' }}>
+                        style={{ fontFamily: 'Lineal, serif' }}>
                       {children}
                     </h3>
                   ),

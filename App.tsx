@@ -102,7 +102,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between relative">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'Funnel Display, serif' }}>Architect AI</h1>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'Lineal, serif' }}>Architect AI</h1>
               <p className="text-sm text-muted-foreground/60">AI-powered system design documentation</p>
             </div>
             {error && (
@@ -146,7 +146,7 @@ function App() {
                   className="w-72 h-72 mx-auto mb-[-2.5rem] opacity-90"
                 />
               </div>
-              <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'Funnel Display, serif' }}>
+              <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'Lineal, serif' }}>
                 Welcome to Architect AI
               </h2>
               <p className="text-muted-foreground mb-6">

@@ -112,7 +112,7 @@ Despite these time constraints, the project successfully delivers all mandatory 
 │   └── geminiService.ts  # Google Gemini API integration
 ├── assets/               # Static assets
 │   ├── card/            # Logo and branding
-│   ├── fonts/           # Custom fonts (Fira Code, Funnel Display, Inter, Playfair)
+│   ├── fonts/           # Custom fonts (Fira Code, Lineal, Inter, Playfair)
 │   └── icons/           # Icon assets
 ├── lib/                  # Utility functions
 │   └── utils.ts         # Helper functions
