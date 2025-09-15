@@ -9,6 +9,7 @@ import DocumentViewer from './components/DocumentViewer';
 import Footer from './components/Footer';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { Button } from './components/ui/button';
+import iconsHero from './assets/icons/icons_hero.png';
 
 function App() {
   const [prompt, setPrompt] = useState<string>('');
@@ -140,7 +141,7 @@ function App() {
             <div className="max-w-md mx-auto">
               <div className="">
                 <img 
-                  src="/assets/icons/icons_hero.png" 
+                  src={iconsHero} 
                   alt="Architect AI Hero" 
                   className="w-62 h-62 mx-auto mb-6 opacity-90"
                 />
